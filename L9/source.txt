@@ -1,0 +1,5 @@
+123,
+45,
+Andrei este, tare
+int main
+hehe
