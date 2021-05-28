@@ -52,6 +52,7 @@ int main(int argc, char** argv)
 
         do
         {
+            fflush(stdout);
             printf("reading...\n");
             cod_r = read(w1pipe[0], &numberRead, sizeof(numberRead));
             if(cod_r == 4)
@@ -59,7 +60,11 @@ int main(int argc, char** argv)
               sum += numberRead;
               printf("sum now is %d and codebreak is %d\n", sum, cod_r);
             }
-            else break;
+            else 
+            {
+                printf("Broken out of worker1\n");
+                break;
+            }
         } while (cod_r != 0);
 
         printf("Proceed to write to the supervisor %d\n", sum); 
@@ -81,6 +86,7 @@ int main(int argc, char** argv)
             int cod_r;
             do
             {
+                fflush(stdout);
                 printf("sum now is %d\n", sum);
                 cod_r = read(w2pipe[0], &numberRead, sizeof(numberRead));
                 if(cod_r == 4)
@@ -88,7 +94,12 @@ int main(int argc, char** argv)
                     sum += numberRead;
                     printf("sum now is %d and codebreak is %d\n", sum, cod_r);
                 }
-                else break;
+                else
+                {
+                    printf("Broken out of worker2\n");
+                    break;
+                }
+
             } while (cod_r != 0);
 
             printf("Proceeding to write to supervis %d\n", sum); 
@@ -111,7 +122,10 @@ int main(int argc, char** argv)
                 flag = 3 - flag;
             }
 
-            close(w1pipe[1]);
+            int zero = 0;
+            write(w1pipe[1], &zero, 4);
+            FAIL_IF(close(w1pipe[1]), "Colsed w1pipe1", "erro w1pipe1");
+            write(w2pipe[1], &zero, 4);
             close(w2pipe[1]);
 
             int partialSum1, partialSum2;
