@@ -46,15 +46,23 @@ int main(int argc, char** argv)
         close(w2pipe[0]);
         close(w2pipe[1]);
 
-        int sum;        
+        int sum = 0;        
         int numberRead;
-        while( read(w1pipe[0], &numberRead, sizeof(numberRead)) != 0 )
-        {
-            printf("W1: %d\n", numberRead);
-            sum += numberRead;
-        }
+        int cod_r;
 
-        close(w1pipe[0]);
+        do
+        {
+            printf("reading...\n");
+            cod_r = read(w1pipe[0], &numberRead, sizeof(numberRead));
+            if(cod_r == 4)
+            {
+              sum += numberRead;
+              printf("sum now is %d and codebreak is %d\n", sum, cod_r);
+            }
+            else break;
+        } while (cod_r != 0);
+
+        printf("Proceed to write to the supervisor %d\n", sum); 
         FAIL_IF( write(w1pipe[1], &sum, sizeof(sum)), "Sent the partial sum to the supervisor. I am worker1", "Error at sending the partial sum from worker1");
         close(w1pipe[1]);
 
@@ -68,15 +76,22 @@ int main(int argc, char** argv)
             close(w1pipe[0]);
             close(w1pipe[1]);
 
-            int sum;
+            int sum = 0;
             int numberRead;
-            while( read(w2pipe[0], &numberRead, sizeof(numberRead)) != 0)
+            int cod_r;
+            do
             {
-                printf("W2 : %d\n", numberRead);
-                sum += numberRead;
-            }
+                printf("sum now is %d\n", sum);
+                cod_r = read(w2pipe[0], &numberRead, sizeof(numberRead));
+                if(cod_r == 4)
+                {
+                    sum += numberRead;
+                    printf("sum now is %d and codebreak is %d\n", sum, cod_r);
+                }
+                else break;
+            } while (cod_r != 0);
 
-            close(w2pipe[0]);
+            printf("Proceeding to write to supervis %d\n", sum); 
             FAIL_IF( write(w2pipe[1], &sum, sizeof(sum)), "Sent the partial sum to the supervisor. I am worker2", "Error at sending the partial sum from worker2");
             close(w2pipe[1]);
 
@@ -100,6 +115,7 @@ int main(int argc, char** argv)
             close(w2pipe[1]);
 
             int partialSum1, partialSum2;
+            printf("reading the partial sums...\n");
             FAIL_IF( read(w1pipe[0], &partialSum1, sizeof(partialSum1)), "Read the partial sum1", "Error reading the partial sum1");
             FAIL_IF( read(w2pipe[0], &partialSum2, sizeof(partialSum2)), "Read the partial sum2", "Error reading the partial sum2");
 
